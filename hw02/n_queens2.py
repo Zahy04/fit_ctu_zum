@@ -61,7 +61,9 @@ def main():
     app_state = "SETUP" 
     
     clock = pygame.time.Clock()
-    update_delay = 1
+    if len(sys.argv) > 1:
+        update_delay = int(sys.argv[1])
+    else : update_delay = 0
     last_update_time = pygame.time.get_ticks()
 
     btn_minus = pygame.Rect(620, 100, 40, 40)
@@ -81,7 +83,7 @@ def main():
                 if btn_play.collidepoint(event.pos):
                     if app_state == "SETUP" or app_state == "SOLVED":
                         app_state = "SOLVING"
-                        queens = [random.randint(0, n - 1) for _ in range(n)]
+                        queens = [i for i in range(n)]
                         t = initial_t
                         current_score = get_score(queens) 
  
@@ -101,7 +103,7 @@ def main():
                             n -= 1
                             input_text = str(n)
                     elif btn_plus.collidepoint(event.pos):
-                        if n < 100:
+                        if n <= 1000:
                             n += 1
                             input_text = str(n)
 
@@ -120,24 +122,26 @@ def main():
         # ----------------- Algorithm  start ------------------------
         
         if app_state == "SOLVING":
-                current_score = get_score(queens)
-                
-                if current_score == 0:
-                    app_state = "SOLVED" 
-                else:
-                    changed_idx, changed_to = random.randint(0, n-1), random.randint(0, n-1)
-                    new_queens = queens.copy()
-                    new_queens[changed_idx] = changed_to
-                    new_score = get_score(new_queens)
-                    
-                    if new_score > current_score:
-                        queens = new_queens
-                    elif propability_function(new_score, current_score, t) > random.random():
-                        queens = new_queens
-                        
-                    t *= 0.9999
-                
-                last_update_time = current_time
+                if current_time - last_update_time > update_delay:
+                    current_score = get_score(queens)
+
+                    if current_score == 0:
+                        app_state = "SOLVED" 
+                    else:
+                        swap1_idx, swap2_idx = random.randint(0, n-1), random.randint(0, n-1)
+                        new_queens = queens.copy()
+                        new_queens[swap1_idx] = queens[swap2_idx]
+                        new_queens[swap2_idx] = queens[swap1_idx]
+                        new_score = get_score(new_queens)
+
+                        if new_score > current_score:
+                            queens = new_queens
+                        elif propability_function(new_score, current_score, t) > random.random():
+                            queens = new_queens
+
+                        t *= 0.9999
+
+                    last_update_time = current_time
                 
         # ----------------- Algorithm end ------------------------
         screen.fill(WHITE)
